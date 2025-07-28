@@ -1,10 +1,9 @@
-// import { createInterface } from 'node:readline';
 import { CLICommand } from './state.js';
 import { State } from './state.js';
 
 export function startREPL(state: State) {
     state.readlineInterface.prompt();
-    state.readlineInterface.on("line", (input: string) => {
+    state.readlineInterface.on("line", async (input: string) => {
         const cleanedInput = cleanInput(input);
         if (cleanedInput.length === 0) {
             state.readlineInterface.prompt();
@@ -16,8 +15,11 @@ export function startREPL(state: State) {
             return;
         }
         const command: CLICommand = state.commands[cleanedInput[0]];
-        command.callback(state);
-
+        try {
+            await command.callback(state);
+        } catch (error) {
+            console.error(`Error executing command '${command.name}':`, error);
+        }
         state.readlineInterface.prompt();
     });
 }
