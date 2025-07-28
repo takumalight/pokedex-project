@@ -1,4 +1,6 @@
 import { createInterface } from 'node:readline';
+import { getCommands } from './commands_registry.js';
+import { CLICommand } from './command.js';
 
 export function startREPL() {
     const rl = createInterface({
@@ -14,7 +16,15 @@ export function startREPL() {
             rl.prompt();
             return;
         }
-        console.log(`Your command was: ${cleanedInput[0]}`);
+        const availableCommands = getCommands();
+        if (!availableCommands[cleanedInput[0]]){
+            console.log("Unknown command");
+            rl.prompt();
+            return;
+        }
+        const command: CLICommand = availableCommands[cleanedInput[0]];
+        command.callback(availableCommands);
+
         rl.prompt();
     });
 }
