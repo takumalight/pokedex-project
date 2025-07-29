@@ -1,4 +1,4 @@
-import { Cache } from "./pokecache.js"
+import { Cache } from "./pokecache.js";
 
 export class PokeAPI {
     private static readonly baseURL = "https://pokeapi.co/api/v2";
@@ -63,12 +63,12 @@ export class PokeAPI {
         }
     }
 
-    async fetchBaseExperience(pokemon_name: string): Promise<number> {
+    async fetchPokemon(pokemon_name: string): Promise<Pokemon> {
         const pokemonURL = `${PokeAPI.baseURL}/pokemon/${pokemon_name}`;
         // Attempt to retrieve from cache first
         const cacheData = this.#pokeCache.get(pokemonURL);
         if (cacheData !== undefined) {
-            return cacheData as number;
+            return cacheData as Pokemon;
         }
 
         let response;
@@ -79,12 +79,80 @@ export class PokeAPI {
             }
 
             const data = await response.json();
-            return data.base_experience;
+
+            const pokemonStats = parsePokemonStats(data);
+            const pokemonTypes = parsePokemonTypes(data);
+            
+            return {
+                name: data.name,
+                height: data.height,
+                weight: data.weight,
+                stats: pokemonStats,
+                types: pokemonTypes,
+                base_experience: data.base_experience
+            } as Pokemon;
         }catch (err) {
             throw new Error(`Failed to fetch pokemon: ${err instanceof Error? err.message : String(err)}`);
         }
     }
 }
+
+function parsePokemonStats(data: PokeAPIResponse): PokemonStat[] {
+    let statArray: PokemonStat[] = [];
+
+    for (const stat of data.stats){
+        let newStat: PokemonStat = {
+            name: stat.stat.name,
+            val: stat.base_stat
+        }
+        statArray.push(newStat);
+    }
+    return statArray;
+}
+
+function parsePokemonTypes(data: PokeAPIResponse): string[] {
+    let typeArray: string[] = [];
+
+    for (const type of data.types){
+        typeArray.push(type.type.name)
+    }
+    return typeArray;
+}
+
+interface PokeAPIResponse {
+    name: string;
+    height: number;
+    weight: number;
+    base_experience: number;
+    stats: Array<{
+        base_stat: number;
+        stat: {
+            name: string;
+        };
+    }>;
+    types: Array<{
+        type: {
+            name: string;
+        };
+    }>;
+    // Allow any other properties the API might return
+    [key: string]: any;
+}
+
+
+export type Pokemon = {
+    name: string;
+    height: number;
+    weight: number;
+    stats: PokemonStat[];
+    types: string[];
+    base_experience: number;
+};
+
+export type PokemonStat = {
+    name: string;
+    val: number;
+};
 
 export type ShallowLocations = {
   count: number;
@@ -97,54 +165,3 @@ export type ShallowLocations = {
 };
 
 export type PokemonEncounters = string[];
-
-// export type Location = {
-//   encounter_method_rates: Array<{
-//     encounter_method: {
-//         name: string;
-//         url: string;
-//     },
-//     version_details: Array<{
-//         rate: number;
-//         version: {
-//             name: string;
-//             url: string;
-//         };
-//     }>
-//   }>;
-//   game_index: number;
-//   id: number;
-//   location: {
-//     name: string;
-//     url: string;
-//   };
-//   name: string;
-//   names: Array<{
-//     language: {
-//         name: string;
-//         url: string;
-//     };
-//     name: string;
-//   }>
-//   pokemon_encounters: Array<{
-//     pokemon: {
-//         name: string;
-//         url: string;
-//     };
-//     version_details: Array<{
-//         encounter_details: Array<{
-//             chance: number;
-//             condition_values: Array<{
-//                 name: string;
-//                 url: string;
-//             }>;
-//             max_level: number;
-//             method:{
-//                 name: string;
-//                 url: string;
-//             }
-//             min_level: number;
-//         }>
-//     }>
-//   }>
-// };

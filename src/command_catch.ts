@@ -1,18 +1,28 @@
+import { Pokemon } from './pokeapi';
 import { State } from './state';
 
 export async function commandCatch(state: State, ...args: string[]): Promise<void> {
-    const pokemon = args[0];
-    console.log(`Throwing a Pokeball at ${pokemon}...`);
+    const pokemonName = args[0];
 
-    const base_experience = await state.pokeAPI.fetchBaseExperience(pokemon);
-    const catchScore = Math.random() * 300;
+    if (!pokemonName) {
+        console.log("You must provide a pokemon name!\nExample: [catch bulbasaur]");
+        return;
+    }
 
-    if (catchScore > base_experience){
-        state.pokedex[pokemon] = {
-            name: pokemon
+    console.log(`Throwing a Pokeball at ${pokemonName}...`);
+
+    try{
+        const pokemondata:Pokemon = await state.pokeAPI.fetchPokemon(pokemonName);
+            
+        const catchScore = Math.random() * 300;
+
+        if (catchScore > pokemondata.base_experience){
+            state.pokedex[pokemonName] = pokemondata;
+            console.log(`${pokemonName} was caught!`);
+        } else {
+            console.log(`${pokemonName} escaped!`);
         }
-        console.log(`${pokemon} was caught!`);
-    } else {
-        console.log(`${pokemon} escaped!`);
+    }catch (err) {
+        console.error(`Failed to find ${pokemonName}. Make sure you typed it correctly!`)
     }
 }
