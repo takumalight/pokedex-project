@@ -15,8 +15,9 @@ export function startREPL(state: State) {
             return;
         }
         const command: CLICommand = state.commands[cleanedInput[0]];
+        const args = cleanedInput.slice(1);
         try {
-            await command.callback(state);
+            await command.callback(state, ...args);
         } catch (error) {
             console.error(`Error executing command '${command.name}':`, error);
         }
