@@ -5,11 +5,16 @@ import { commandHelp } from "./command_help.js";
 import { commandMap } from "./command_map.js";
 import { commandMapb } from "./command_mapb.js";
 import { commandExplore } from "./command_explore.js";
+import { commandCatch } from "./command_catch.js";
 
 export type CLICommand = {
     name: string;
     description: string;
     callback: (state: State, ...args: string[]) => Promise<void>;
+};
+
+export type Pokemon = {
+    name: string;
 };
 
 export type State = {
@@ -18,6 +23,7 @@ export type State = {
     pokeAPI: PokeAPI;
     nextLocationsURL: string;
     prevLocationsURL: string;
+    pokedex: Record<string, Pokemon>;
 }
 
 export function initState(): State {
@@ -52,10 +58,16 @@ export function initState(): State {
                 name: "explore",
                 description: "Displays the species of Pokemon native to the location",
                 callback: commandExplore
+            },
+            catch: {
+                name: "catch",
+                description: "Catches a Pokemon",
+                callback: commandCatch
             }
         },
         pokeAPI: new PokeAPI(),
         nextLocationsURL: "",
         prevLocationsURL: "",
+        pokedex: {}
     };
 }

@@ -62,6 +62,28 @@ export class PokeAPI {
             throw new Error(`Failed to fetch location area: ${err instanceof Error? err.message : String(err)}`);
         }
     }
+
+    async fetchBaseExperience(pokemon_name: string): Promise<number> {
+        const pokemonURL = `${PokeAPI.baseURL}/pokemon/${pokemon_name}`;
+        // Attempt to retrieve from cache first
+        const cacheData = this.#pokeCache.get(pokemonURL);
+        if (cacheData !== undefined) {
+            return cacheData as number;
+        }
+
+        let response;
+        try {
+            response = await fetch(pokemonURL);
+            if (!response.ok) {
+                throw new Error(`HTTP error! Cannot reach ${pokemonURL}! status: ${response.status}`);
+            }
+
+            const data = await response.json();
+            return data.base_experience;
+        }catch (err) {
+            throw new Error(`Failed to fetch pokemon: ${err instanceof Error? err.message : String(err)}`);
+        }
+    }
 }
 
 export type ShallowLocations = {
